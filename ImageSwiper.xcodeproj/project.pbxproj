@@ -21,6 +21,7 @@
 		534B0F2917EE98A9002B0573 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 534B0F0B17EE98A9002B0573 /* UIKit.framework */; };
 		534B0F3117EE98A9002B0573 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 534B0F2F17EE98A9002B0573 /* InfoPlist.strings */; };
 		534B0F3317EE98A9002B0573 /* ImageSwiperTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 534B0F3217EE98A9002B0573 /* ImageSwiperTests.m */; };
+		534B0F4117EEE5EB002B0573 /* CardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 534B0F4017EEE5EB002B0573 /* CardView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +54,8 @@
 		534B0F2E17EE98A9002B0573 /* ImageSwiperTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ImageSwiperTests-Info.plist"; sourceTree = "<group>"; };
 		534B0F3017EE98A9002B0573 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		534B0F3217EE98A9002B0573 /* ImageSwiperTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImageSwiperTests.m; sourceTree = "<group>"; };
+		534B0F3F17EEE5EB002B0573 /* CardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CardView.h; sourceTree = "<group>"; };
+		534B0F4017EEE5EB002B0573 /* CardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CardView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,6 +115,8 @@
 		534B0F0D17EE98A9002B0573 /* ImageSwiper */ = {
 			isa = PBXGroup;
 			children = (
+				534B0F3F17EEE5EB002B0573 /* CardView.h */,
+				534B0F4017EEE5EB002B0573 /* CardView.m */,
 				534B0F1617EE98A9002B0573 /* AppDelegate.h */,
 				534B0F1717EE98A9002B0573 /* AppDelegate.m */,
 				534B0F1917EE98A9002B0573 /* Main.storyboard */,
@@ -254,6 +259,7 @@
 			files = (
 				534B0F1E17EE98A9002B0573 /* ViewController.m in Sources */,
 				534B0F1817EE98A9002B0573 /* AppDelegate.m in Sources */,
+				534B0F4117EEE5EB002B0573 /* CardView.m in Sources */,
 				534B0F1417EE98A9002B0573 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
