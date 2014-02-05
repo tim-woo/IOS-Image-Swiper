@@ -151,11 +151,12 @@
         [UIView animateWithDuration:slideFactor*2 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             gesture.view.layer.position = finalPoint;
         } completion:^(BOOL finished) {
-            // Calculate final change in x-position that was made
-            CGFloat swipeDistance = self.startPointInSuperview.x - newLocation.x;
-            CGFloat absSwipeDistance = labs(swipeDistance);
+            // Calculate final change that was made
+            CGFloat dx = newLocation.x - self.startPointInSuperview.x;
+            CGFloat dy = newLocation.y - self.startPointInSuperview.y;
+            CGFloat swipeDistance = sqrt(dx*dx+dy*dy);
             
-            if (absSwipeDistance < self.neededSwipeDistance) {
+            if (swipeDistance < self.neededSwipeDistance) {
                 if ([self.delegate respondsToSelector:@selector(cardView:willReturnToCenterFrom:)]) {
                     [self.delegate cardView:self willReturnToCenterFrom:cardViewLocation];
                 }
@@ -169,8 +170,19 @@
                 
                 // Animate off screen
                 [UIView animateWithDuration:0.4 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                    CGFloat offscreenX = (swipeDistance > 0 ? -self.superview.frame.origin.x-self.bounds.size.width : self.superview.frame.size.width+self.bounds.size.width);
-                    gesture.view.layer.position = CGPointMake(offscreenX, gesture.view.layer.position.y);
+					CGFloat viewDiagonal = sqrt(pow(self.bounds.size.width, 2)+pow(self.bounds.size.height, 2));
+					CGFloat direction = dy / dx;
+					CGFloat offscreenX;
+					CGFloat offscreenY;
+					if(labs(dx) > labs(dy)){
+						offscreenX = (dx < 0 ? -self.superview.frame.origin.x-viewDiagonal : self.superview.frame.size.width+viewDiagonal);
+						offscreenY = direction * offscreenX;
+					} else {
+						offscreenY = (dy < 0 ? -self.superview.frame.origin.y-viewDiagonal : self.superview.frame.size.height+viewDiagonal);
+						offscreenX = offscreenY / direction;
+						
+					}
+                    gesture.view.layer.position = CGPointMake(offscreenX, offscreenY);
                 } completion:^(BOOL finished) {
                     if ([self.delegate respondsToSelector:@selector(cardView:didGoOffscreenFrom:)]) {
                         [self.delegate cardView:self didGoOffscreenFrom:cardViewLocation];
