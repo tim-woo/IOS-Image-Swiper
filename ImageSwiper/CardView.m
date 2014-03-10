@@ -10,7 +10,7 @@
 #define DEGREE_TO_RADIAN(x) x*M_PI/180
 
 // Defaults
-#define DEFAULT_SWIPE_DISTANCE 80
+#define DEFAULT_SWIPE_DISTANCE 60
 #define DEFAULT_BORDER_WIDTH 5
 #define DEFAULT_ROTATION_ANGLE 10
 
@@ -36,39 +36,34 @@
     return self;
 }
 
+- (id)initWithFrontView:(UIView *)frontView back:(UIView *)backView {
+	self = [super initWithFrame:frontView.frame];
+	if(self){
+		self.front = frontView;
+		self.back = backView;
+		self.swipeEnabled = YES;
+        [self setupViews];
+        [self setupAttributes];
+        [self setupGestures];
+	}
+	return self;
+}
+
 - (void)setupViews {
-    // Add front card
-    self.front = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height)];
-    self.front.layer.backgroundColor = [UIColor lightGrayColor].CGColor;
-    self.front.layer.shouldRasterize = YES;
-    
-    // Add back card
-    self.back = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height)];
-    self.back.layer.backgroundColor = [UIColor lightGrayColor].CGColor;
-    self.back.layer.shouldRasterize = YES;
-    
-    // Add white background to front card
-    UIView *background = [[UIView alloc] initWithFrame:CGRectMake(DEFAULT_BORDER_WIDTH,
-                                                                  DEFAULT_BORDER_WIDTH,
-                                                                  self.frame.size.width-2*DEFAULT_BORDER_WIDTH,
-                                                                  self.frame.size.height-2*DEFAULT_BORDER_WIDTH)];
-    background.layer.backgroundColor = [UIColor colorWithRed:1 green:1 blue:1 alpha:0.7].CGColor;
-    [self.front addSubview:background];
-    
-    // Add info button to container
-    self.infoButton = [UIButton buttonWithType:UIButtonTypeInfoDark];
-    self.infoButton.center = CGPointMake(self.frame.size.width-20, self.frame.size.height-20);
-    [self.infoButton addTarget:self action:@selector(flip:) forControlEvents:UIControlEventTouchUpInside];
-    
+    self.front.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+    self.back.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+	
+	self.clipsToBounds = YES;
+	self.front.layer.cornerRadius = 16.0f;
+	self.back.layer.cornerRadius = 16.0f;
+	
     // Add "Yep" "Nope" labels
     self.label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 200, 200)];
     self.label.alpha = 0;
     self.label.textAlignment = NSTextAlignmentCenter;
     
-    [self.front addSubview:self.label];
     [self addSubview:self.back];
     [self addSubview:self.front];
-    [self addSubview:self.infoButton];
 }
 
 - (void)setupAttributes {
@@ -82,23 +77,22 @@
 - (void)setupGestures {
     self.panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panHandle:)];
     [self addGestureRecognizer:self.panGesture];
-    
-    self.tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapHandle:)];
-    [self addGestureRecognizer:self.tapGesture];
 }
-
-/*
-// Only override drawRect: if you perform custom drawing.
-// An empty implementation adversely affects performance during animation.
-- (void)drawRect:(CGRect)rect
-{
-    // Drawing code
-}
-*/
 
 #pragma mark - Gesture Handlers
 
+- (void)setSwipeEnabled:(BOOL)swipeEnabled {
+	_swipeEnabled = swipeEnabled;
+	if (!swipeEnabled) {
+		[self returnCardViewToStartPointAnimated:YES];
+	}
+}
+
 - (IBAction)panHandle:(UIPanGestureRecognizer *)gesture {
+	if(!self.swipeEnabled){
+		return;
+	}
+	
     CGPoint newLocation = [gesture locationInView:self.superview];
     
     if(gesture.state==UIGestureRecognizerStateBegan) {
@@ -164,37 +158,37 @@
                 [self returnCardViewToStartPointAnimated:YES];
             }
             else {
-                if ([self.delegate respondsToSelector:@selector(cardView:willGoOffscreenFrom:)]) {
-                    [self.delegate cardView:self willGoOffscreenFrom:cardViewLocation];
-                }
-                
-                // Animate off screen
-                [UIView animateWithDuration:0.4 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-					CGFloat viewDiagonal = sqrt(pow(self.bounds.size.width, 2)+pow(self.bounds.size.height, 2));
-					CGFloat direction = dy / dx;
-					CGFloat offscreenX;
-					CGFloat offscreenY;
-					if(labs(dx) > labs(dy)){
-						offscreenX = (dx < 0 ? -self.superview.frame.origin.x-viewDiagonal : self.superview.frame.size.width+viewDiagonal);
-						offscreenY = direction * offscreenX;
-					} else {
-						offscreenY = (dy < 0 ? -self.superview.frame.origin.y-viewDiagonal : self.superview.frame.size.height+viewDiagonal);
-						offscreenX = offscreenY / direction;
-						
-					}
-                    gesture.view.layer.position = CGPointMake(offscreenX, offscreenY);
-                } completion:^(BOOL finished) {
-                    if ([self.delegate respondsToSelector:@selector(cardView:didGoOffscreenFrom:)]) {
-                        [self.delegate cardView:self didGoOffscreenFrom:cardViewLocation];
-                    }
-                }];
+				[self goOffscreenWithAngle:atan2(dy, dx)];
             }
         }];
     }
 }
 
+- (void)goOffscreenWithAngle:(CGFloat)angle {
+	CardViewLocation cardViewLocation = cosf(angle) > 0 ? (sinf(angle) > 0 ? CardViewBottomRight : CardViewTopRight) : (sinf(angle) > 0 ? CardViewBottomLeft : CardViewTopLeft);
+	if ([self.delegate respondsToSelector:@selector(cardView:willGoOffscreenFrom:)]) {
+		[self.delegate cardView:self willGoOffscreenFrom:cardViewLocation];
+	}
+	
+	// Animate off screen
+	[UIView animateWithDuration:0.8 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+		CGRect screenBounds = [UIScreen mainScreen].bounds;
+		CGFloat screenDiagonal = sqrt(pow(screenBounds.size.width, 2)+pow(screenBounds.size.height, 2));
+		CGFloat distance = sqrt(pow(self.bounds.size.width, 2)+pow(self.bounds.size.height, 2)) + screenDiagonal;
+		
+		CGFloat offscreenX = distance * cosf(angle);
+		CGFloat offscreenY = distance * sinf(angle);
+		
+		self.layer.position = CGPointMake(offscreenX, offscreenY);
+	} completion:^(BOOL finished) {
+		if (self.delegate && [self.delegate respondsToSelector:@selector(cardView:didGoOffscreenFrom:)]) {
+			[self.delegate cardView:self didGoOffscreenFrom:cardViewLocation];
+		}
+	}];
+}
+
 - (void)tapHandle:(UITapGestureRecognizer *)gesture {
-    [self flip:nil];
+//    [self flip:nil];
 }
 
 #pragma mark - Public Methods
@@ -224,18 +218,18 @@
 #pragma mark - Helper methods
 
 - (void)flip:(UIButton *)sender {
-    if (self.isShowingFront) {
-        [UIView transitionFromView:self.front toView:self.back duration:0.5 options:UIViewAnimationOptionTransitionFlipFromLeft completion:^(BOOL finished) {
-            [self bringSubviewToFront:self.infoButton];
-        }];
-    }
-    else {
-        [UIView transitionFromView:self.back toView:self.front duration:0.5 options:UIViewAnimationOptionTransitionFlipFromLeft completion:^(BOOL finished) {
-            [self bringSubviewToFront:self.infoButton];
-        }];
-    }
-    
-    self.isShowingFront = !self.isShowingFront;
+	if(self.back){
+		if (self.isShowingFront) {
+			[UIView transitionFromView:self.front toView:self.back duration:0.5 options:UIViewAnimationOptionTransitionFlipFromLeft completion:^(BOOL finished) {
+			}];
+		}
+		else {
+			[UIView transitionFromView:self.back toView:self.front duration:0.5 options:UIViewAnimationOptionTransitionFlipFromLeft completion:^(BOOL finished) {
+			}];
+		}
+		
+		self.isShowingFront = !self.isShowingFront;
+	}
 }
 
 -(void)setAnchorPoint:(CGPoint)anchorPoint forView:(UIView *)view
