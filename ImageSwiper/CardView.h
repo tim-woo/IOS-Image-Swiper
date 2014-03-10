@@ -28,11 +28,13 @@ typedef enum {
 @interface CardView : UIView
 
 - (void)returnCardViewToStartPointAnimated:(BOOL)animated;
+- (id)initWithFrontView:(UIView *)frontView back:(UIView *)backView;
+- (void)goOffscreenWithAngle:(CGFloat)angle;
+- (void)flip:(UIButton *)sender;
 
 // Views
-@property (strong, nonatomic) UIView *front;    // Add subviews to the front UIView to customize front of card
-@property (strong, nonatomic) UIView *back;     // Add subviews to the back UIView to customize back of card
-@property (strong, nonatomic) UIButton *infoButton;
+@property (strong, nonatomic) UIView IBOutlet *front;    // Add subviews to the front UIView to customize front of card
+@property (strong, nonatomic) UIView IBOutlet *back;     // Add subviews to the back UIView to customize back of card
 @property (strong, nonatomic) UILabel *label;
 
 // Attributes
@@ -41,6 +43,8 @@ typedef enum {
 @property (readonly, nonatomic) BOOL isOffScreen;
 @property (readonly, nonatomic) BOOL isShowingFront;
 @property (assign, nonatomic) CGFloat rotationAngle;
+@property (nonatomic) BOOL swipeEnabled;
+
 // Delegates
 @property (assign, nonatomic) id<CardViewDelegate> delegate;
 
